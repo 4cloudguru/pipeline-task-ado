@@ -2,13 +2,21 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 // One shared, hoisted event log so both mock factories write to it and the
 // ordering assertion below is a real observation rather than an inference.
-const h = vi.hoisted(() => ({
-  events: [] as string[],
-  proxyAgentUrls: [] as string[],
-  getHttpProxyConfiguration: vi.fn<() => unknown>(),
-  setSecret: vi.fn<(value: string) => void>(),
-  debug: vi.fn<(message: string) => void>(),
-}))
+const h = vi.hoisted(() => {
+  const spies: { createHttpClient?: ReturnType<typeof vi.fn> } = {}
+  return {
+    events: [] as string[],
+    proxyAgentUrls: [] as string[],
+    getHttpProxyConfiguration: vi.fn<() => unknown>(),
+    setSecret: vi.fn<(value: string) => void>(),
+    debug: vi.fn<(message: string) => void>(),
+    createHttpClient: (real: (...args: never[]) => unknown) => {
+      spies.createHttpClient = vi.fn(real as (...args: unknown[]) => unknown)
+      return spies.createHttpClient
+    },
+    spies,
+  }
+})
 
 vi.mock('azure-pipelines-task-lib/task.js', () => ({
   getHttpProxyConfiguration: h.getHttpProxyConfiguration,
@@ -24,6 +32,15 @@ vi.mock('undici', () => ({
     }
   },
 }))
+
+// Partial mock: createHttpClient is spied so the options this module passes are
+// observable, while resolveProxy stays REAL — the property under test above is
+// that whatever spellings it produces are all registered, and a stub would let
+// that pass while the real percent-encoding went unmasked.
+vi.mock('@4cloudguru/pipeline-task-core', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@4cloudguru/pipeline-task-core')>()
+  return { ...actual, createHttpClient: h.createHttpClient(actual.createHttpClient) }
+})
 
 // resolveProxy is deliberately NOT mocked: the property under test is that
 // whatever spellings it produces are all registered, and a stub would let this
@@ -106,15 +123,15 @@ describe('buildAdoFetchOptions', () => {
 })
 
 describe('createAdoHttpClient', () => {
+  const messages = {
+    insecureUrl: (url: string) => `insecure ${url}`,
+    requestFailed: (url: string, status: number) => `failed ${url} ${status}`,
+  }
+
   it('returns a client exposing the transport surface tasks consume', () => {
     h.getHttpProxyConfiguration.mockReturnValue(null)
 
-    const client = createAdoHttpClient({
-      messages: {
-        insecureUrl: (url) => `insecure ${url}`,
-        requestFailed: (url, status) => `failed ${url} ${status}`,
-      },
-    })
+    const client = createAdoHttpClient({ messages })
 
     for (const method of [
       'fetchWithTimeout',
@@ -127,5 +144,31 @@ describe('createAdoHttpClient', () => {
     ] as const) {
       expect(typeof client[method]).toBe('function')
     }
+  })
+
+  // The GitHub release-asset exception is opt-in here precisely so a caller that
+  // only ever talks to releases.hashicorp.com does not inherit a wider redirect
+  // surface. Passing it through unchanged is what makes that opt-in real.
+  it('forwards an explicit redirect policy', () => {
+    h.getHttpProxyConfiguration.mockReturnValue(null)
+    const redirectPolicy = () => true
+
+    createAdoHttpClient({ messages, redirectPolicy })
+
+    const passed = h.spies.createHttpClient?.mock.calls.at(-1)?.[0] as {
+      redirectPolicy?: unknown
+    }
+    expect(passed.redirectPolicy).toBe(redirectPolicy)
+  })
+
+  // Omitted rather than passed as undefined: the core client applies its own
+  // same-host default, and an explicit undefined could override it.
+  it('omits redirectPolicy entirely when none is given', () => {
+    h.getHttpProxyConfiguration.mockReturnValue(null)
+
+    createAdoHttpClient({ messages })
+
+    const passed = h.spies.createHttpClient?.mock.calls.at(-1)?.[0] as object
+    expect(Object.hasOwn(passed, 'redirectPolicy')).toBe(false)
   })
 })

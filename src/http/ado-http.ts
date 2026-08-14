@@ -55,7 +55,10 @@ export function createAdoHttpClient(options: AdoHttpClientOptions): HttpClient {
   return createHttpClient({
     // Re-evaluated per attempt, so a proxy change between retries is picked up.
     fetchOptions: buildAdoFetchOptions,
-    debug: (message: string) => debug(message),
+    // Passed by reference rather than wrapped: a forwarding lambda would be an
+    // extra function no test can meaningfully reach, and task-lib's debug does
+    // not close over `this`.
+    debug,
     messages: options.messages,
     ...(options.redirectPolicy ? { redirectPolicy: options.redirectPolicy } : {}),
   })
