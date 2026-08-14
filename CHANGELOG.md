@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.1](https://github.com/4cloudguru/pipeline-task-ado/compare/v0.1.0...v0.1.1) (2026-08-14)
+
+
+### Bug Fixes
+
+* **ci:** give the first publish a token to bootstrap trusted publishing ([#4](https://github.com/4cloudguru/pipeline-task-ado/issues/4)) ([ccc3415](https://github.com/4cloudguru/pipeline-task-ado/commit/ccc34151ea07170a5657da78f0909f6c561a0350))
+
 ## 0.1.0 (2026-08-14)
 
 
