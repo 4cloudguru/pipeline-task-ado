@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 const getInput = vi.hoisted(() => vi.fn<(name: string, required?: boolean) => string | undefined>())
 
-vi.mock('azure-pipelines-task-lib/task', () => ({ getInput }))
+vi.mock('azure-pipelines-task-lib/task.js', () => ({ getInput }))
 
 const { getBoolInputDefaultTrue } = await import('./bool-input.js')
 

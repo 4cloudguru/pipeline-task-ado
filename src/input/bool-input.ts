@@ -1,4 +1,7 @@
-import { getInput } from 'azure-pipelines-task-lib/task'
+// The `.js` extension is load-bearing: azure-pipelines-task-lib is CommonJS with
+// no `exports` map, so under ESM resolution the extensionless subpath does not
+// resolve at all (ERR_MODULE_NOT_FOUND). CJS is unaffected either way.
+import { getInput } from 'azure-pipelines-task-lib/task.js'
 
 /**
  * Reads a boolean input whose intended default is TRUE (fail-closed). It reads the

@@ -59,7 +59,6 @@
 #   3. set vars.SUITE_READ_APP_ID and secrets.SUITE_READ_APP_KEY on this repo;
 #   4. add this check to main's required_status_checks.
 # Until (1) and (2) land, this repo is a repo the replay is blind to.
-name: signature-replay
 #
 # That credential is deliberately the smallest thing that closes the gap. Every
 # OTHER repo the replay reads is public, so its checkout takes the job's own
