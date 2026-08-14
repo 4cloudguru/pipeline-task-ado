@@ -42,7 +42,7 @@ Modules move here one family at a time, smallest first, so the migration pattern
 is proven on something harmless before anything security-bearing moves:
 
 - [x] `getBoolInputDefaultTrue` — fail-closed boolean input
-- [ ] `http-client` — proxy-aware, HTTPS-pinned client wiring over `-core`
+- [x] `http-client` — proxy-aware, HTTPS-pinned client wiring over `-core`
 - [ ] `registry-version-resolver`
 - [ ] `https-client`
 
