@@ -152,8 +152,9 @@ jobs:
   publish:
     needs: build
     runs-on: ubuntu-latest
-    # A deployment tag policy on the "release" environment restricts this to v* tags; the
-    # environment reference also scopes NPM_TOKEN to this job alone.
+    # A deployment tag policy on the "release" environment restricts this to v* tags,
+    # and the environment name is part of what npmjs matches when authorizing the
+    # trusted publisher — so this reference is load-bearing, not organisational.
     environment: release
     permissions:
       contents: read
@@ -200,32 +201,18 @@ jobs:
             exit 1
           fi
 
-      # BOOTSTRAP ONLY — REMOVE ONCE 0.1.0 IS ON THE REGISTRY.
-      #
-      # Trusted publishing is configured under a package's settings on npmjs.com,
-      # so it cannot be configured for a package that does not exist yet. The
-      # first publish of a NEW package therefore has nothing to authorize it: the
-      # OIDC exchange finds no trusted publisher and, with no token to fall back
-      # to, the registry answers 404 on the PUT rather than 403 (it will not
-      # confirm whether a name exists). That is what failed on v0.1.0.
-      #
-      # npm tries OIDC first and only falls back to a token, so leaving this in
-      # place would not silently bypass trusted publishing once it is set up --
-      # but it is still a long-lived write credential in the release path, which
-      # is exactly what the OIDC design removes. Once 0.1.0 is on the registry:
-      #   1. npmjs.com -> the package -> Settings -> Trusted Publisher:
-      #      org 4cloudguru, repo pipeline-task-ado, workflow publish.yml,
-      #      environment release (all fields are case-sensitive and exact);
-      #   2. delete this env: block and the NPM_TOKEN secret;
-      #   3. optionally set "Require two-factor authentication and disallow
-      #      tokens" so the credential cannot be reintroduced.
-      #
-      # TARBALL flows in via env:, never expanded inline. Provenance still comes
-      # from publishConfig.provenance plus the id-token permission above.
+      # No NODE_AUTH_TOKEN: the registry credential is minted from the OIDC
+      # identity of this workflow, which npmjs matches against the package's
+      # configured trusted publisher (org 4cloudguru, repo pipeline-task-ado,
+      # this filename, environment release — all matched exactly). 0.1.1 was
+      # published with a one-time token because a trusted publisher cannot be
+      # configured for a package that does not exist yet; that token is revoked
+      # and must not come back. Provenance comes from publishConfig.provenance
+      # plus the id-token permission above. TARBALL flows in via env:, never
+      # expanded inline.
       - run: npm publish "$TARBALL"
         env:
           TARBALL: ${{ needs.build.outputs.tarball }}
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       # Attest the exact tarball just published, so provenance binds to the bytes consumers
       # install rather than a re-derived copy.
