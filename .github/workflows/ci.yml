@@ -1,0 +1,186 @@
+---
+name: CI
+
+"on":
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_call: {}
+  workflow_dispatch: {}
+
+concurrency:
+  group: ci-${{ github.event_name }}-${{ github.head_ref || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  typecheck:
+    name: Typecheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: step-security/harden-runner@b09bb98e06d4d774595224525879c09bc6e98c40 # v2.20.1
+        with:
+          egress-policy: audit
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: npm run typecheck
+
+  format:
+    name: Format
+    runs-on: ubuntu-latest
+    steps:
+      - uses: step-security/harden-runner@b09bb98e06d4d774595224525879c09bc6e98c40 # v2.20.1
+        with:
+          egress-policy: audit
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: npm run format:check
+
+  test:
+    name: Test (Node ${{ matrix.node }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # 20 is the floor: every ADO task declares a Node20_1 fallback handler.
+        node: [20, 24]
+    steps:
+      - uses: step-security/harden-runner@b09bb98e06d4d774595224525879c09bc6e98c40 # v2.20.1
+        with:
+          egress-policy: audit
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: npm run test:coverage
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: step-security/harden-runner@b09bb98e06d4d774595224525879c09bc6e98c40 # v2.20.1
+        with:
+          egress-policy: audit
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: npm run build
+      - name: Assert the CJS entrypoint is really CommonJS
+        # ADO task hosts are CJS. An accidental ESM-only build would only fail
+        # at runtime on an agent, so prove `require()` resolves here.
+        run: node -e "const c=require('./dist/index.cjs'); if(typeof c.getBoolInputDefaultTrue!=='function'){throw new Error('CJS entrypoint did not export getBoolInputDefaultTrue')}"
+      - name: Assert the ESM entrypoint loads
+        run: node --input-type=module -e "import('./dist/index.js').then(m=>{if(typeof m.getBoolInputDefaultTrue!=='function'){throw new Error('ESM entrypoint did not export getBoolInputDefaultTrue')}})"
+      - name: Assert the peers are not bundled
+        # These are peers so the consumer's single vendored copy is used. Bundling
+        # one would ship a second azure-pipelines-task-lib in every .vsix that can
+        # drift from the copy the agent configured, and it would only show up as
+        # bundle size in a downstream repo.
+        run: |
+          node -e "const fs=require('fs');for(const f of ['dist/index.cjs','dist/index.js']){const s=fs.readFileSync(f,'utf8');for(const dep of ['azure-pipelines-task-lib','undici','@4cloudguru/pipeline-task-core']){if(s.includes('node_modules/'+dep)){throw new Error(f+' inlined '+dep+', so the external split is broken')}}}"
+      - name: Assert the peer is required, not vendored
+        # A hard dependency here would defeat the peer split silently.
+        run: |
+          node -e "const p=require('./package.json');if(p.dependencies&&p.dependencies['azure-pipelines-task-lib']){throw new Error('azure-pipelines-task-lib must stay a peerDependency')}if(!p.peerDependencies||!p.peerDependencies['azure-pipelines-task-lib']){throw new Error('azure-pipelines-task-lib peerDependency is missing')}"
+
+  smoke:
+    name: Consumer smoke test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: step-security/harden-runner@b09bb98e06d4d774595224525879c09bc6e98c40 # v2.20.1
+        with:
+          egress-policy: audit
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci --ignore-scripts
+      # Packs the tarball and consumes it from a throwaway project built exactly
+      # the way an ADO task is, so the `exports`/`typesVersions` resolution that
+      # the Build job's by-path assertions cannot reach is covered. See the
+      # header of scripts/consumer-smoke.mjs for the bug that motivated it.
+      - run: npm run smoke
+
+  audit:
+    name: Dependency audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: step-security/harden-runner@b09bb98e06d4d774595224525879c09bc6e98c40 # v2.20.1
+        with:
+          egress-policy: audit
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: npm audit --omit=dev --audit-level=high
+
+  actionlint:
+    name: Lint GitHub Actions
+    runs-on: ubuntu-latest
+    steps:
+      - uses: step-security/harden-runner@b09bb98e06d4d774595224525879c09bc6e98c40 # v2.20.1
+        with:
+          egress-policy: audit
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Install actionlint
+        shell: bash
+        # Downloads the release asset and verifies it against actionlint's own
+        # published SHA256 before extracting, rather than the convenience
+        # install script, which pipes curl straight into tar with no integrity
+        # check. Matches the sibling repos' verify-before-extract convention.
+        run: |
+          set -euo pipefail
+          curl -sSfLO https://github.com/rhysd/actionlint/releases/download/v1.7.12/actionlint_1.7.12_linux_amd64.tar.gz
+          echo "8aca8db96f1b94770f1b0d72b6dddcb1ebb8123cb3712530b08cc387b349a3d8  actionlint_1.7.12_linux_amd64.tar.gz" | sha256sum -c -
+          tar xzf actionlint_1.7.12_linux_amd64.tar.gz actionlint
+      - name: Run actionlint
+        run: ./actionlint -color
+
+  zizmor:
+    name: Scan Workflows (zizmor)
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+    steps:
+      - uses: step-security/harden-runner@b09bb98e06d4d774595224525879c09bc6e98c40 # v2.20.1
+        with:
+          egress-policy: audit
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: zizmorcore/zizmor-action@3dc1ecc9bcb9e94e9b2c709687979e1298497054 # v0.6.2

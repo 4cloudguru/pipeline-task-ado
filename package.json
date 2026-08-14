@@ -1,0 +1,75 @@
+{
+  "name": "@4cloudguru/pipeline-task-ado",
+  "version": "0.0.0",
+  "description": "Azure DevOps-specific task primitives shared by the Azure Pipelines task extensions.",
+  "license": "Apache-2.0",
+  "private": false,
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org",
+    "access": "public",
+    "provenance": true
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/4cloudguru/pipeline-task-ado.git"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "require": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.cjs"
+      },
+      "import": {
+        "types": "./dist/index.d.mts",
+        "default": "./dist/index.js"
+      }
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist"
+  ],
+  "sideEffects": false,
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "typecheck": "tsc --noEmit",
+    "format": "prettier --write \"src/**/*.ts\" \"scripts/**/*.mjs\" \"*.mts\"",
+    "format:check": "prettier --check \"src/**/*.ts\" \"scripts/**/*.mjs\" \"*.mts\"",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "smoke": "node scripts/consumer-smoke.mjs",
+    "commitlint": "commitlint"
+  },
+  "peerDependencies": {
+    "azure-pipelines-task-lib": ">=4",
+    "undici": ">=6"
+  },
+  "peerDependenciesMeta": {
+    "undici": {
+      "optional": true
+    }
+  },
+  "dependencies": {
+    "@4cloudguru/pipeline-task-core": "^0.3.1"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^21.2.1",
+    "@commitlint/config-conventional": "^21.2.0",
+    "@types/node": "^20.19.0",
+    "@vitest/coverage-v8": "^4.1.7",
+    "azure-pipelines-task-lib": "^5.2.1",
+    "prettier": "3.9.6",
+    "tsup": "^8.3.5",
+    "typescript": "^5.9.3",
+    "undici": "^7.16.0",
+    "vitest": "^4.1.7"
+  }
+}
