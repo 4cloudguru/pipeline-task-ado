@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.2.0](https://github.com/4cloudguru/pipeline-task-ado/compare/v0.1.1...v0.2.0) (2026-08-14)
+
+
+### Features
+
+* add the proxy-aware ADO HTTP client ([#6](https://github.com/4cloudguru/pipeline-task-ado/issues/6)) ([9f95138](https://github.com/4cloudguru/pipeline-task-ado/commit/9f951382cacf3e1e9992fb9fd89ab5759dd7207e))
+
+
+### Dependencies
+
+* bump undici in the dev-dependencies group across 1 directory ([#1](https://github.com/4cloudguru/pipeline-task-ado/issues/1)) ([c46a02c](https://github.com/4cloudguru/pipeline-task-ado/commit/c46a02cd2ffd7bee4160eab7046356c5297d838a))
+
 ## [0.1.1](https://github.com/4cloudguru/pipeline-task-ado/compare/v0.1.0...v0.1.1) (2026-08-14)
 
 
