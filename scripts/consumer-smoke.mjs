@@ -58,12 +58,22 @@ const CONSUMER_TSCONFIG = {
 }
 
 // USES what it imports — an unused import can be elided before resolution and
-// would prove nothing.
+// would prove nothing. Touches the type surface too: HttpClient comes from
+// -core and is re-exposed through this package's return type, so a consumer
+// that only installs THIS package must still be able to name it.
 const CONSUMER_SOURCE = `
-import { getBoolInputDefaultTrue } from '${PKG}';
+import { getBoolInputDefaultTrue, createAdoHttpClient, buildAdoFetchOptions } from '${PKG}';
 
 export function use(): boolean {
-    return getBoolInputDefaultTrue('requireChecksum');
+    const client = createAdoHttpClient({
+        messages: {
+            insecureUrl: (url: string) => 'insecure ' + url,
+            requestFailed: (url: string, status: number) => 'failed ' + url + ' ' + status,
+        },
+    });
+    const fetchText: (url: string, timeoutMs?: number) => Promise<string> = client.fetchText;
+    const init: RequestInit = buildAdoFetchOptions();
+    return getBoolInputDefaultTrue('requireChecksum') && typeof fetchText === 'function' && init !== null;
 }
 `
 
