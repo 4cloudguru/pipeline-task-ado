@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.0](https://github.com/4cloudguru/pipeline-task-ado/compare/v0.2.0...v0.3.0) (2026-08-15)
+
+
+### Features
+
+* track pipeline-task-core 0.5.x ([#9](https://github.com/4cloudguru/pipeline-task-ado/issues/9)) ([ca1f072](https://github.com/4cloudguru/pipeline-task-ado/commit/ca1f0721f886c3ef817a42f8ac36656af8557546))
+
 ## [0.2.0](https://github.com/4cloudguru/pipeline-task-ado/compare/v0.1.1...v0.2.0) (2026-08-14)
 
 
