@@ -19,9 +19,14 @@ import {
  * BEFORE proxyUrl is handed to a dispatcher or interpolated into a message.
  * resolveProxy cannot do it itself; the package it lives in does not import
  * the task lib. That obligation is the reason this function exists here.
+ *
+ * `url` is the hop about to be issued. It is forwarded because half the ADO
+ * proxy contract is a per-DESTINATION decision: getHttpProxyConfiguration only
+ * evaluates Agent.ProxyBypassList when it is given a URL, and returns null for
+ * a bypassed host. Dropping it proxies destinations the operator excluded.
  */
-export function buildAdoFetchOptions(): RequestInit {
-  const resolved = resolveProxy(getHttpProxyConfiguration())
+export function buildAdoFetchOptions(url?: string): RequestInit {
+  const resolved = resolveProxy(getHttpProxyConfiguration(url))
   if (!resolved) return {}
 
   for (const secret of resolved.secrets) {

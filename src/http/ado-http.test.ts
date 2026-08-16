@@ -7,7 +7,7 @@ const h = vi.hoisted(() => {
   return {
     events: [] as string[],
     proxyAgentUrls: [] as string[],
-    getHttpProxyConfiguration: vi.fn<() => unknown>(),
+    getHttpProxyConfiguration: vi.fn<(url?: string) => unknown>(),
     setSecret: vi.fn<(value: string) => void>(),
     debug: vi.fn<(message: string) => void>(),
     createHttpClient: (real: (...args: never[]) => unknown) => {
@@ -77,6 +77,24 @@ describe('buildAdoFetchOptions', () => {
     expect(buildAdoFetchOptions()).toHaveProperty('dispatcher')
     expect(h.proxyAgentUrls).toHaveLength(1)
     expect(h.proxyAgentUrls[0]).toContain('proxy.example.com:8080')
+  })
+
+  // Half the ADO proxy contract is a per-destination decision: task-lib only
+  // consults Agent.ProxyBypassList when it is handed the URL, and returns null
+  // for a bypassed host. A zero-arity builder is assignable to core's
+  // (url: string) => ... signature, so nothing but this test catches the drop.
+  it('forwards the hop url so a bypassed destination is not proxied', () => {
+    h.getHttpProxyConfiguration.mockImplementation((url?: string) =>
+      url === 'https://internal.example.com/x'
+        ? null
+        : { proxyUrl: 'http://proxy.example.com:8080', proxyUsername: '', proxyPassword: '' },
+    )
+
+    expect(buildAdoFetchOptions('https://internal.example.com/x')).toEqual({})
+    expect(h.proxyAgentUrls).toHaveLength(0)
+
+    expect(buildAdoFetchOptions('https://elsewhere.example.com/x')).toHaveProperty('dispatcher')
+    expect(h.getHttpProxyConfiguration).toHaveBeenLastCalledWith('https://elsewhere.example.com/x')
   })
 
   // The defect this guards: the WHATWG URL setter percent-encodes the password,
