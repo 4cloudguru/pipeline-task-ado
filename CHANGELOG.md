@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.4.0](https://github.com/4cloudguru/pipeline-task-ado/compare/v0.3.0...v0.4.0) (2026-08-16)
+
+
+### Features
+
+* track pipeline-task-core 0.6.0 ([#13](https://github.com/4cloudguru/pipeline-task-ado/issues/13)) ([997129f](https://github.com/4cloudguru/pipeline-task-ado/commit/997129f6f7413a82e668bafbf22b08b963677669))
+
+
+### Bug Fixes
+
+* forward the hop url so a bypassed destination is not proxied ([#11](https://github.com/4cloudguru/pipeline-task-ado/issues/11)) ([a8c8d7d](https://github.com/4cloudguru/pipeline-task-ado/commit/a8c8d7ddbc47ad070e42caf4771c372adcf602fe))
+
 ## [0.3.0](https://github.com/4cloudguru/pipeline-task-ado/compare/v0.2.0...v0.3.0) (2026-08-15)
 
 
