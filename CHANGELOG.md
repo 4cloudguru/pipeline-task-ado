@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.1](https://github.com/4cloudguru/pipeline-task-ado/compare/v0.4.0...v0.4.1) (2026-08-20)
+
+
+### Bug Fixes
+
+* **ci:** refuse to run signature-replay when Dependabot edited the workflow ([#17](https://github.com/4cloudguru/pipeline-task-ado/issues/17)) ([1bc1134](https://github.com/4cloudguru/pipeline-task-ado/commit/1bc113400868ce619f1ab6a267ed0146d32a7b7c))
+
 ## [0.4.0](https://github.com/4cloudguru/pipeline-task-ado/compare/v0.3.0...v0.4.0) (2026-08-16)
 
 
