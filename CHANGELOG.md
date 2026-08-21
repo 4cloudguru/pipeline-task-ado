@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.3](https://github.com/4cloudguru/pipeline-task-ado/compare/v0.4.2...v0.4.3) (2026-08-21)
+
+
+### Dependencies
+
+* bump the github-actions-dependencies group with 3 updates ([#27](https://github.com/4cloudguru/pipeline-task-ado/issues/27)) ([07c1c70](https://github.com/4cloudguru/pipeline-task-ado/commit/07c1c70ea8f48048b7208dacd9e8c1d1a854ae40))
+
 ## [0.4.2](https://github.com/4cloudguru/pipeline-task-ado/compare/v0.4.1...v0.4.2) (2026-08-20)
 
 
