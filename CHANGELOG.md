@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.2](https://github.com/4cloudguru/pipeline-task-ado/compare/v0.4.1...v0.4.2) (2026-08-20)
+
+
+### Documentation
+
+* **security:** record the shared-workflow trust relationship, and fix what it invalidated ([#25](https://github.com/4cloudguru/pipeline-task-ado/issues/25)) ([3adbc7d](https://github.com/4cloudguru/pipeline-task-ado/commit/3adbc7d37431343dac655dbaf9875bfcd80c15a1))
+
 ## [0.4.1](https://github.com/4cloudguru/pipeline-task-ado/compare/v0.4.0...v0.4.1) (2026-08-20)
 
 
