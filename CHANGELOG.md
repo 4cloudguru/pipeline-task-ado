@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.4](https://github.com/4cloudguru/pipeline-task-ado/compare/v0.4.3...v0.4.4) (2026-08-23)
+
+
+### Documentation
+
+* add secure-temp, environment-variables, id-token-generator to scope ([#29](https://github.com/4cloudguru/pipeline-task-ado/issues/29)) ([029e892](https://github.com/4cloudguru/pipeline-task-ado/commit/029e892d15a531eade268d2bd9ebb9bad55732a7))
+
 ## [0.4.3](https://github.com/4cloudguru/pipeline-task-ado/compare/v0.4.2...v0.4.3) (2026-08-21)
 
 
