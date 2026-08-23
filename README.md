@@ -45,6 +45,19 @@ is proven on something harmless before anything security-bearing moves:
 - [x] `http-client` — proxy-aware, HTTPS-pinned client wiring over `-core`
 - [ ] `registry-version-resolver`
 - [ ] `https-client`
+- [ ] `secure-temp` — secret-bearing temp file writer (0600 + exclusive create).
+      `azure-pipelines-terraform`'s copy adds Windows ACL hardening and a
+      scrub-before-unlink pass that `azure-pipelines-packer`'s copy is missing;
+      moving the terraform copy here fixes that drift for both extensions at once.
+- [ ] `environment-variables` — tracked env var + secret registration helper.
+      `azure-pipelines-terraform`'s copy adds `registerSecret`/
+      `getTrackedSecretValues` for exact-match secret redaction on build
+      attachments that `azure-pipelines-packer`'s copy is missing.
+- [ ] `id-token-generator` — OIDC token exchange for federated credentials.
+      `azure-pipelines-terraform`'s copy validates `SYSTEM_OIDCREQUESTURI`'s
+      hostname against an allowlist before sending the `System.AccessToken`
+      bearer credential to it; `azure-pipelines-packer`'s copy only checks the
+      URL scheme is `https:` and is missing that allowlist check.
 
 ## A warning to anyone moving a module here
 
