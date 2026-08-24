@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.1](https://github.com/4cloudguru/pipeline-task-ado/compare/v0.5.0...v0.5.1) (2026-08-24)
+
+
+### Chores
+
+* release the pipeline-task-core dependency floor bump ([#35](https://github.com/4cloudguru/pipeline-task-ado/issues/35)) ([f9979d8](https://github.com/4cloudguru/pipeline-task-ado/commit/f9979d84bf9397c0e1dd7116272a12267566fac2))
+
 ## [0.5.0](https://github.com/4cloudguru/pipeline-task-ado/compare/v0.4.4...v0.5.0) (2026-08-24)
 
 
