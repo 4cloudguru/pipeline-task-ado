@@ -92,9 +92,12 @@ describe('SYSTEM_OIDCREQUESTURI validation (before any network call)', () => {
 
   it('rejects an arbitrary host', async () => {
     process.env['SYSTEM_OIDCREQUESTURI'] = 'https://attacker.example.com/oidc'
-    await expect(generateIdToken('sc-id')).rejects.toThrow(
-      'not a recognized Azure DevOps OIDC endpoint',
-    )
+    const err = (await generateIdToken('sc-id').catch((e: unknown) => e)) as Error
+    expect(err.message).toContain('not a recognized Azure DevOps OIDC endpoint')
+    // The allowed hosts and the reason are what make this actionable.
+    expect(err.message).toContain('vstoken.dev.azure.com')
+    expect(err.message).toContain('*.visualstudio.com')
+    expect(err.message).toContain('refusing to send the job access token to it')
   })
 
   it('trusts a *.visualstudio.com host when the collection URI names the SAME org', async () => {
@@ -107,18 +110,20 @@ describe('SYSTEM_OIDCREQUESTURI validation (before any network call)', () => {
   it('rejects a *.visualstudio.com host for a DIFFERENT org than the collection URI', async () => {
     process.env['SYSTEM_OIDCREQUESTURI'] = 'https://attacker-org.visualstudio.com/oidc'
     process.env['SYSTEM_COLLECTIONURI'] = 'https://myorg.visualstudio.com/'
-    await expect(generateIdToken('sc-id')).rejects.toThrow(
-      'not a recognized Azure DevOps OIDC endpoint',
-    )
+    const err = (await generateIdToken('sc-id').catch((e: unknown) => e)) as Error
+    expect(err.message).toContain('not a recognized Azure DevOps OIDC endpoint')
+    // The host does match the *.visualstudio.com entry the message lists, so
+    // the message has to say it was the org that failed.
+    expect(err.message).toContain("System.CollectionUri names 'myorg'")
   })
 
   it('rejects a *.visualstudio.com host when no collection URI is available to vouch for it', async () => {
     process.env['SYSTEM_OIDCREQUESTURI'] = 'https://myorg.visualstudio.com/oidc'
     delete process.env['SYSTEM_COLLECTIONURI']
     delete process.env['SYSTEM_TEAMFOUNDATIONCOLLECTIONURI']
-    await expect(generateIdToken('sc-id')).rejects.toThrow(
-      'not a recognized Azure DevOps OIDC endpoint',
-    )
+    const err = (await generateIdToken('sc-id').catch((e: unknown) => e)) as Error
+    expect(err.message).toContain('not a recognized Azure DevOps OIDC endpoint')
+    expect(err.message).toContain('unset, unparseable, or uses the dev.azure.com form')
   })
 
   it('trusts an on-prem host equal to the collection URI host', async () => {
@@ -254,7 +259,7 @@ describe('malformed responses', () => {
         headers: { 'content-type': 'application/json' },
       })) as unknown as typeof globalThis.fetch
     await expect(generateIdToken('sc-id')).rejects.toThrow(
-      'Failed to acquire the federated identity token',
+      'Failed to acquire a federated (OIDC) ID token for the service connection',
     )
   })
 })

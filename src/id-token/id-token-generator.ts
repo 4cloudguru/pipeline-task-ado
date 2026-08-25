@@ -56,6 +56,31 @@ function collectionVisualStudioOrgLabel(): string | undefined {
 }
 
 /**
+ * Why a host was rejected, phrased for the pipeline author who has to fix it.
+ * The expected-host list is derived from the allowlists above so it cannot
+ * drift away from what is actually enforced.
+ */
+function describeDisallowedOidcHost(hostname: string): string {
+  const expected = [...ADO_OIDC_HOSTS, ...ADO_OIDC_HOST_SUFFIXES.map((s) => `*${s}`)].join(', ')
+  const base =
+    `SYSTEM_OIDCREQUESTURI's host '${hostname}' is not a recognized Azure DevOps OIDC endpoint ` +
+    `(expected ${expected}, or the host of System.CollectionUri); ` +
+    `refusing to send the job access token to it.`
+  if (!hostname.toLowerCase().endsWith('.visualstudio.com')) {
+    return base
+  }
+  // Without this the rejection looks arbitrary: the host does match the
+  // *.visualstudio.com entry listed above, and only the org check failed.
+  const collectionOrg = collectionVisualStudioOrgLabel()
+  return collectionOrg === undefined
+    ? `${base} A *.visualstudio.com endpoint is trusted only for the job's own org, which is read ` +
+        `from System.CollectionUri -- that variable is unset, unparseable, or uses the ` +
+        `dev.azure.com form that carries the org in the path rather than the host.`
+    : `${base} A *.visualstudio.com endpoint is trusted only for the job's own org, and ` +
+        `System.CollectionUri names '${collectionOrg}'.`
+}
+
+/**
  * The job's SystemVssConnection AccessToken is sent as a Bearer header to
  * SYSTEM_OIDCREQUESTURI, so in addition to the https assertion the host is
  * pinned to Azure DevOps endpoints. On-prem Azure DevOps Server hosts the
@@ -127,9 +152,7 @@ export class TokenGenerator {
       throw new Error(`SYSTEM_OIDCREQUESTURI must be an https:// URL, got '${oidcRequestUri}'.`)
     }
     if (!isAllowedOidcRequestHost(parsedUri.hostname)) {
-      throw new Error(
-        `SYSTEM_OIDCREQUESTURI's host '${parsedUri.hostname}' is not a recognized Azure DevOps OIDC endpoint.`,
-      )
+      throw new Error(describeDisallowedOidcHost(parsedUri.hostname))
     }
 
     // The federated token is requested with only the service-connection id; no
@@ -255,7 +278,11 @@ export class TokenGenerator {
     }
 
     if (!oidcObject?.oidcToken) {
-      throw new Error('Failed to acquire the federated identity token from Azure DevOps.')
+      throw new Error(
+        'Failed to acquire a federated (OIDC) ID token for the service connection: Azure DevOps ' +
+          'returned a response with no token. Verify the service connection is configured for ' +
+          'Workload Identity Federation and that the pipeline is authorized to use it.',
+      )
     }
 
     const oidcToken = oidcObject.oidcToken
