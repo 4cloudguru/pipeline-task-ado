@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.3](https://github.com/4cloudguru/pipeline-task-ado/compare/v0.5.2...v0.5.3) (2026-08-25)
+
+
+### Bug Fixes
+
+* **id-token:** explain why an OIDC request host was rejected ([#42](https://github.com/4cloudguru/pipeline-task-ado/issues/42)) ([249a302](https://github.com/4cloudguru/pipeline-task-ado/commit/249a302d9ea824df5a5cc24722d54868104f736a))
+
 ## [0.5.2](https://github.com/4cloudguru/pipeline-task-ado/compare/v0.5.1...v0.5.2) (2026-08-24)
 
 
