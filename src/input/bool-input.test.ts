@@ -22,6 +22,18 @@ describe('getBoolInputDefaultTrue', () => {
     expect(getBoolInputDefaultTrue('requireChecksum')).toBe(false)
   })
 
+  // azure-pipelines-packer#331: YAML stringifies an unquoted `requireChecksum: true`
+  // as 'True'. A parser comparing against the lowercase literal read that as false and
+  // silently disabled checksum/GPG verification. These rows pin the capitalization
+  // contract so no consumer can regress to a case-sensitive compare.
+  it.each(['True', 'TRUE', 'TrUe', ' true ', '\ttrue\n'])(
+    'stays true for the YAML form %o',
+    (raw) => {
+      getInput.mockReturnValue(raw)
+      expect(getBoolInputDefaultTrue('requireChecksum')).toBe(true)
+    },
+  )
+
   it.each(['true', 'yes', '0', 'nonsense'])('stays true for %o', (raw) => {
     getInput.mockReturnValue(raw)
     expect(getBoolInputDefaultTrue('requireChecksum')).toBe(true)
