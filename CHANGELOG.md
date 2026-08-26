@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.0](https://github.com/4cloudguru/pipeline-task-ado/compare/v0.5.3...v0.6.0) (2026-08-26)
+
+
+### Features
+
+* **endpoint:** add readSecretEndpointDataParameter for credential-bearing endpoint data ([#45](https://github.com/4cloudguru/pipeline-task-ado/issues/45)) ([b14f9a4](https://github.com/4cloudguru/pipeline-task-ado/commit/b14f9a46c084e9cbd7f6c23a867bd34dce278cf5))
+
 ## [0.5.3](https://github.com/4cloudguru/pipeline-task-ado/compare/v0.5.2...v0.5.3) (2026-08-25)
 
 
