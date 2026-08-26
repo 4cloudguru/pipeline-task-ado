@@ -11,4 +11,8 @@ export {
   writeSecretFile,
 } from './secure-temp/secure-temp.js'
 export { EnvironmentVariableHelper } from './environment-variables/environment-variables.js'
+export {
+  maskSecretLines,
+  readSecretEndpointDataParameter,
+} from './endpoint/endpoint-data-secret.js'
 export { generateIdToken, TokenGenerator } from './id-token/id-token-generator.js'
