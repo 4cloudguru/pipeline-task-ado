@@ -65,15 +65,17 @@ describe('setEnvironmentVariable', () => {
   })
 
   it('throws on an empty value when required is true, instead of warning (#1029)', () => {
-    expect(() => EnvironmentVariableHelper.setEnvironmentVariable('MY_VAR', '', false, true)).toThrow(
-      /MY_VAR/,
-    )
+    expect(() =>
+      EnvironmentVariableHelper.setEnvironmentVariable('MY_VAR', '', false, true),
+    ).toThrow(/MY_VAR/)
     expect(h.warning).not.toHaveBeenCalled()
     expect(process.env['MY_VAR']).toBeUndefined()
   })
 
   it('still skips an empty NAME with required true, rather than throwing on a blank name', () => {
-    expect(() => EnvironmentVariableHelper.setEnvironmentVariable('', 'value', false, true)).not.toThrow()
+    expect(() =>
+      EnvironmentVariableHelper.setEnvironmentVariable('', 'value', false, true),
+    ).not.toThrow()
     expect(h.debug).toHaveBeenCalled()
   })
 })
