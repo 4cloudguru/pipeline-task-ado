@@ -2,9 +2,10 @@
  * SCOPE — what a green run here does and does not claim.
  *
  * DOES claim: setEnvironmentVariable sets/masks/tracks a variable and skips an
- * empty name or value with a diagnostic instead of throwing; registerSecret
- * masks a value and records it for the exact-match tracked-secret set;
- * clearTrackedVariables removes every variable this helper set (and only
+ * empty name or value with a diagnostic instead of throwing (unless `required`
+ * is true, in which case an empty value throws instead of warning);
+ * registerSecret masks a value and records it for the exact-match tracked-secret
+ * set; clearTrackedVariables removes every variable this helper set (and only
  * those) and clears the tracked-secret set too.
  *
  * Does NOT claim: that every secret-bearing value in the process actually
@@ -61,6 +62,19 @@ describe('setEnvironmentVariable', () => {
     expect(() => EnvironmentVariableHelper.setEnvironmentVariable('MY_VAR', '')).not.toThrow()
     expect(h.warning).toHaveBeenCalled()
     expect(process.env['MY_VAR']).toBeUndefined()
+  })
+
+  it('throws on an empty value when required is true, instead of warning (#1029)', () => {
+    expect(() => EnvironmentVariableHelper.setEnvironmentVariable('MY_VAR', '', false, true)).toThrow(
+      /MY_VAR/,
+    )
+    expect(h.warning).not.toHaveBeenCalled()
+    expect(process.env['MY_VAR']).toBeUndefined()
+  })
+
+  it('still skips an empty NAME with required true, rather than throwing on a blank name', () => {
+    expect(() => EnvironmentVariableHelper.setEnvironmentVariable('', 'value', false, true)).not.toThrow()
+    expect(h.debug).toHaveBeenCalled()
   })
 })
 

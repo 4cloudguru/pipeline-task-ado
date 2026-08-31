@@ -28,15 +28,22 @@ export class EnvironmentVariableHelper {
     name: string,
     value: string,
     isSecret: boolean = false,
+    required: boolean = false,
   ): void {
     if (!name) {
       debug('Skipped setting environment variable: name was empty.')
       return
     }
     if (!value) {
-      warning(
-        `Environment variable '${name}' was not set because the value was empty or undefined. This may indicate a misconfiguration.`,
-      )
+      const message = `Environment variable '${name}' was not set because the value was empty or undefined. This may indicate a misconfiguration.`
+      if (required) {
+        // Guards at today's known call sites already stop an empty credential
+        // upstream of this helper -- this throw is for the caller that does
+        // not have (or bypasses) one, so the primitive itself fails closed
+        // instead of only failing closed where a guard happens to sit (#1029).
+        throw new Error(message)
+      }
+      warning(message)
       return
     }
     if (isSecret) {
