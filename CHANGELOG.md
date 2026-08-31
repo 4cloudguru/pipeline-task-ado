@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.0](https://github.com/4cloudguru/pipeline-task-ado/compare/v0.6.0...v0.7.0) (2026-08-31)
+
+
+### Features
+
+* **ci:** adopt the shared Dependabot CI-health check ([#49](https://github.com/4cloudguru/pipeline-task-ado/issues/49)) ([00c597c](https://github.com/4cloudguru/pipeline-task-ado/commit/00c597c2ae17217eaaf199e4cee4155a85b25a77))
+
 ## [0.6.0](https://github.com/4cloudguru/pipeline-task-ado/compare/v0.5.3...v0.6.0) (2026-08-26)
 
 
