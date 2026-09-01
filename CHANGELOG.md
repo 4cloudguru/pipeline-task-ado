@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.1](https://github.com/4cloudguru/pipeline-task-ado/compare/v0.7.0...v0.7.1) (2026-08-31)
+
+
+### Bug Fixes
+
+* **security:** add a required option to setEnvironmentVariable that throws on empty ([#1029](https://github.com/4cloudguru/pipeline-task-ado/issues/1029)) ([fe73a3f](https://github.com/4cloudguru/pipeline-task-ado/commit/fe73a3f2efa820513bd59091c45ae0f05e66f0df))
+
 ## [0.7.0](https://github.com/4cloudguru/pipeline-task-ado/compare/v0.6.0...v0.7.0) (2026-08-31)
 
 
