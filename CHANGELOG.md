@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.8.0](https://github.com/4cloudguru/pipeline-task-ado/compare/v0.7.1...v0.8.0) (2026-09-02)
+
+
+### Features
+
+* **oci:** add exchangeOidcForUpst for OCI Workload Identity Federation ([#53](https://github.com/4cloudguru/pipeline-task-ado/issues/53)) ([3f0d1f8](https://github.com/4cloudguru/pipeline-task-ado/commit/3f0d1f82f25b53ed9d54a7c7a2055b320234aa87))
+
 ## [0.7.1](https://github.com/4cloudguru/pipeline-task-ado/compare/v0.7.0...v0.7.1) (2026-08-31)
 
 
