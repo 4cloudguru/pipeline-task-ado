@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.8.1](https://github.com/4cloudguru/pipeline-task-ado/compare/v0.8.0...v0.8.1) (2026-09-03)
+
+
+### Documentation
+
+* **security:** state that the minted OIDC assertion is not audience-scoped ([#59](https://github.com/4cloudguru/pipeline-task-ado/issues/59)) ([7590f1d](https://github.com/4cloudguru/pipeline-task-ado/commit/7590f1d4be76e3748a06db474688e93c03fe9f95))
+
+
+### Security
+
+* override esbuild past GHSA-g7r4-m6w7-qqqr ([#58](https://github.com/4cloudguru/pipeline-task-ado/issues/58)) ([34dc3b9](https://github.com/4cloudguru/pipeline-task-ado/commit/34dc3b94d49893de0eb76f3d2cb8179425cd050d))
+
 ## [0.8.0](https://github.com/4cloudguru/pipeline-task-ado/compare/v0.7.1...v0.8.0) (2026-09-02)
 
 
