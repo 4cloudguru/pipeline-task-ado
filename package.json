@@ -1,6 +1,6 @@
 {
   "name": "@4cloudguru/pipeline-task-ado",
-  "version": "0.8.0",
+  "version": "0.8.1",
   "description": "Azure DevOps-specific task primitives shared by the Azure Pipelines task extensions.",
   "license": "Apache-2.0",
   "private": false,
