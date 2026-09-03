@@ -31,6 +31,31 @@ that registers secrets is the consumer's own, configured by the agent. A report
 that this package embeds a key, or ships a second task lib, is therefore always
 a bug.
 
+## The federated token this package mints is not audience-scoped
+
+`generateIdToken()` requests an Azure DevOps OIDC assertion for a service connection and returns it. **It sets no audience, because Azure DevOps offers no way to set one.** The token endpoint accepts exactly these parameters:
+
+| | |
+|---|---|
+| path | `organization`, `scopeIdentifier`, `hubName`, `planId`, `jobId` |
+| query | `api-version` (required), `serviceConnectionId` (optional) |
+| body | none |
+
+Verified against Microsoft's REST reference for `distributedtask/oidctoken/create` at `api-version` **7.1** and **7.2** — neither accepts an `audience`/`aud` parameter, and the response is a bare `{ oidcToken }`.
+
+**What that means for a relying party.** Every cloud this package serves — Azure, AWS, GCP, OCI — receives an assertion of the same shape, carrying Azure DevOps' default audience and differing only in `sub` (which encodes the specific organization, project and service connection). An assertion minted for one cloud is therefore structurally acceptable to any other relying party federated to the **same** subject.
+
+**So the trust policy is the security boundary, not the token.** Every relying party configured against this package's tokens must pin **both**:
+
+- the **issuer**, and the **audience** exactly — never accept any audience; and
+- the **subject** (`sub`) to the exact service connection, not a prefix or wildcard.
+
+Pinning `sub` alone is not sufficient, and pinning `aud` alone is not sufficient. A trust policy that wildcards either one accepts assertions minted for a *different* purpose in the same Azure DevOps organization. This is the compensating control for the absent audience parameter, and it lives on the relying-party side because that is the only side that can enforce it.
+
+Consumers document the concrete per-cloud configuration: `azure-pipelines-terraform` and `azure-pipelines-packer` each carry WIF setup guides showing the issuer/audience/subject conditions for AWS, GCP and OCI, and `azure-pipelines-terraform` gates their agreement with `scripts/check-wif-audience-parity.js`.
+
+**If Azure DevOps ever exposes per-exchange audience selection, this is the place to use it** — a single requester serving four clouds is the reason the gap has one fix rather than four.
+
 ## Shared CI workflows
 
 Part of this repository's CI is **defined in another repository** — [`4cloudguru/shared-workflows`](https://github.com/4cloudguru/shared-workflows) — and called from `.github/workflows/`. That is a real supply-chain relationship, and it is recorded here so an audit of this repository does not stop at this repository's own tree.

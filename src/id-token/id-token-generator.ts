@@ -156,11 +156,21 @@ export class TokenGenerator {
     }
 
     // The federated token is requested with only the service-connection id; no
-    // custom audience/aud is set, so ADO issues its default-audience OIDC JWT.
-    // This single requester is reused for every WIF-capable provider by
-    // design -- each cloud's relying-party federation config must constrain
-    // the token's issuer, audience, and subject to this org/project/service
-    // connection.
+    // custom audience/aud is set, because ADO OFFERS NO WAY TO SET ONE -- the
+    // endpoint accepts `api-version` and `serviceConnectionId` and nothing else,
+    // with no request body, verified against Microsoft's REST reference for
+    // distributedtask/oidctoken/create at api-version 7.1 AND 7.2 (#52).
+    //
+    // So this is a constraint, not a preference: every cloud gets an assertion of
+    // the same shape carrying ADO's default audience, differing only in `sub`, and
+    // one minted for AWS is structurally acceptable to any relying party federated
+    // to the same subject. The compensating control is on the relying-party side
+    // and cannot be implemented here -- each trust policy must pin the issuer, the
+    // audience EXACTLY, and `sub` to the exact service connection rather than a
+    // prefix. SECURITY.md carries the full statement and the consumer-side links.
+    //
+    // If ADO ever exposes per-exchange audience selection, THIS is the call site
+    // to use it: one requester serves all four clouds, so the gap has one fix.
     const url =
       oidcRequestUri +
       '?api-version=7.1&serviceConnectionId=' +
