@@ -86,8 +86,34 @@ function describeDisallowedOidcHost(hostname: string): string {
  * pinned to Azure DevOps endpoints. On-prem Azure DevOps Server hosts the
  * OIDC endpoint on the collection host itself, so a host equal to the host of
  * System.CollectionUri / System.TeamFoundationCollectionUri is also allowed.
+ *
+ * Exported so terraform-ext's credential-guards.ts (ARM_OIDC_REQUEST_URL) can
+ * call this directly instead of carrying its own byte-for-byte copy -- the
+ * two had drifted apart only by luck, not by anything that would have caught
+ * a future divergence (audit 2026-09-06 #1109 finding 1).
+ *
+ * The on-prem branch below (audit #1109 finding 2) admits a host solely
+ * because a SECOND environment variable (the collection URI) names the same
+ * host -- both are ordinary process-environment values an attacker with
+ * job-variable-setting capability could set to agree with each other, so
+ * agreement alone is not independent evidence. The audit itself scopes this
+ * as low/bounded and NOT a boundary crossing under the stated threat model (a
+ * pipeline author who can set job variables can already run arbitrary code,
+ * at which point curling the metadata endpoint directly needs no help from
+ * this branch) -- deliberately NOT hardened into a reject here, because doing
+ * so would have to be "reject a private address," and a genuine on-prem
+ * Azure DevOps Server is normally reached at an ordinary RFC1918 private
+ * address, which this classification cannot distinguish from the illegitimate
+ * loopback/link-local/metadata shape without a materially larger, separately
+ * evasion-resistant range classifier than this one low-severity finding
+ * justifies building. What IS worth doing at this cost -- visibility -- is
+ * done below: the admitting host is named in a debug line (not a warning
+ * that would fire on every normal on-prem run, repeating the exact
+ * warning-fatigue mistake #1113's SYSTEM_OIDCREQUESTURI finding corrected in
+ * the same audit batch), so an operator investigating this specific branch
+ * can find the evidence with System.Debug=true.
  */
-function isAllowedOidcRequestHost(hostname: string): boolean {
+export function isAllowedOidcRequestHost(hostname: string): boolean {
   const host = hostname.toLowerCase()
   if (ADO_OIDC_HOSTS.includes(host)) {
     return true
@@ -119,6 +145,12 @@ function isAllowedOidcRequestHost(hostname: string): boolean {
     if (!collectionUri) continue
     try {
       if (new URL(collectionUri).hostname.toLowerCase() === host) {
+        // Named explicitly: this is the one branch of the allowlist anchored
+        // to another environment variable rather than a constant, so an
+        // unexpected endpoint admitted here should be easy to find (#1109).
+        debug(
+          `Admitting SYSTEM_OIDCREQUESTURI host '${host}' via the on-prem branch: it matches ${envName}. The job access token will be sent to it.`,
+        )
         return true
       }
     } catch {

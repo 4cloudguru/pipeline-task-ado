@@ -131,6 +131,14 @@ describe('SYSTEM_OIDCREQUESTURI validation (before any network call)', () => {
     process.env['SYSTEM_COLLECTIONURI'] = 'https://ado.internal.example.com/collection'
     stubFetchOk()
     await expect(generateIdToken('sc-id')).resolves.toBe('federated-token')
+    // #1109: the on-prem branch is anchored to another environment variable
+    // rather than a constant, so admitting a host through it is named in the
+    // debug log -- at debug level, not a warning, so a normal on-prem run
+    // does not get a warning fired on every single execution.
+    expect(h.debug).toHaveBeenCalledWith(
+      expect.stringContaining("Admitting SYSTEM_OIDCREQUESTURI host 'ado.internal.example.com'"),
+    )
+    expect(h.debug).toHaveBeenCalledWith(expect.stringContaining('SYSTEM_COLLECTIONURI'))
   })
 })
 
