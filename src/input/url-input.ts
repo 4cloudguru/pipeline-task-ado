@@ -8,9 +8,41 @@ import { extractUrlUserInfoSecrets, redactUrlUserInfo } from '@4cloudguru/pipeli
 import { EnvironmentVariableHelper } from '../environment-variables/environment-variables.js'
 
 /**
- * Reads a task input that holds a URL an operator may have put a credential
- * into (`https://user:token@host/...`), without letting that credential reach
- * the build log first.
+ * Every absolute URL in a free-form value: `scheme://...` up to whitespace or a
+ * quote. A whole-URL input matches once; a `key=value` blob, an argument
+ * string or a multi-line variables input matches wherever a URL is embedded
+ * (`HTTPS_PROXY=https://user:token@proxy.corp/`,
+ * `module_source=git::https://user:pat@host/repo`).
+ */
+const EMBEDDED_URL = /[A-Za-z][A-Za-z0-9+.-]*:\/\/[^\s'"`<>]+/g
+
+/**
+ * Registers every spelling of any `user:password@` found in `text` -- as a
+ * whole URL or embedded in a larger value -- with the masker and the
+ * exact-match scrub. Idempotent; a value with no userinfo registers nothing.
+ */
+export function maskUrlCredentialsIn(text: string): void {
+  const candidates = text.match(EMBEDDED_URL) ?? [text]
+  for (const candidate of candidates) {
+    for (const secret of extractUrlUserInfoSecrets(candidate)) {
+      EnvironmentVariableHelper.registerSecret(secret)
+    }
+  }
+}
+
+/** `text` with the userinfo of every embedded URL redacted; for the debug line. */
+export function redactUrlCredentialsIn(text: string): string {
+  if (!EMBEDDED_URL.test(text)) {
+    return redactUrlUserInfo(text)
+  }
+  return text.replace(EMBEDDED_URL, (url) => redactUrlUserInfo(url))
+}
+
+/**
+ * Reads a task input that may hold a URL an operator has put a credential
+ * into (`https://user:token@host/...`) -- as the whole value, or embedded in a
+ * free-form value such as a variables block, a proxy setting or an argument
+ * string -- without letting that credential reach the build log first.
  *
  * `getInput()` cannot be used for such a value. task-lib's implementation ends
  * with
@@ -29,14 +61,17 @@ import { EnvironmentVariableHelper } from '../environment-variables/environment-
  * `process.env`, so the only silent path is the vault itself. This helper:
  *   1. retrieves the value from the vault exactly as `getInput()` does, minus
  *      the debug line;
- *   2. registers every spelling of any userinfo in it (raw and percent-decoded)
- *      with the masker AND the exact-match scrub, before returning;
+ *   2. registers every spelling of any userinfo in it (raw and percent-decoded,
+ *      in every URL the value contains) with the masker AND the exact-match
+ *      scrub, before returning;
  *   3. then writes the same debug line `getInput()` would have written, with
  *      the userinfo redacted, so the diagnostic is kept.
  *
  * It does NOT validate the value: callers still pass it through
  * `assertPlainUrlBase` (or their own validator), which decides whether userinfo
- * is acceptable at all for that input.
+ * is acceptable at all for that input. For an input that IS a credential (a
+ * `password`-typed API key or token) use `readSecretInput`, which registers
+ * the whole value.
  */
 export function readUrlInput(name: string, required: true): string
 export function readUrlInput(name: string, required?: boolean): string | undefined
@@ -48,10 +83,8 @@ export function readUrlInput(name: string, required = false): string | undefined
     throw new Error(`Input required: ${name}`)
   }
   if (raw) {
-    for (const secret of extractUrlUserInfoSecrets(raw)) {
-      EnvironmentVariableHelper.registerSecret(secret)
-    }
+    maskUrlCredentialsIn(raw)
   }
-  debug(`${name}=${raw ? redactUrlUserInfo(raw) : raw}`)
+  debug(`${name}=${raw ? redactUrlCredentialsIn(raw) : raw}`)
   return raw || undefined
 }
