@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.10.0](https://github.com/4cloudguru/pipeline-task-ado/compare/v0.9.1...v0.10.0) (2026-09-07)
+
+
+### Features
+
+* **input:** readSecretInput, readEndpointUrl; readUrlInput scans free-form values ([c69af79](https://github.com/4cloudguru/pipeline-task-ado/commit/c69af79a0d3f934042563055a7cd8f30945ac450))
+* **input:** readUrlInput reads a URL-shaped input without task-lib debug-logging it ([#71](https://github.com/4cloudguru/pipeline-task-ado/issues/71)) ([f53fa02](https://github.com/4cloudguru/pipeline-task-ado/commit/f53fa02b23192a1ff8269b4a01a2f6e747a15c6a))
+
 ## [0.9.1](https://github.com/4cloudguru/pipeline-task-ado/compare/v0.9.0...v0.9.1) (2026-09-07)
 
 
