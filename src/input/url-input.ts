@@ -13,8 +13,12 @@ import { EnvironmentVariableHelper } from '../environment-variables/environment-
  * string or a multi-line variables input matches wherever a URL is embedded
  * (`HTTPS_PROXY=https://user:token@proxy.corp/`,
  * `module_source=git::https://user:pat@host/repo`).
+ * The scheme is bounded (no registered scheme is longer than a few dozen
+ * characters) so a scan of a long value with no `://` in it stays linear:
+ * an unbounded `[A-Za-z0-9+.-]*` re-reads the same run of letters from every
+ * start position (CodeQL js/polynomial-redos).
  */
-const EMBEDDED_URL = /[A-Za-z][A-Za-z0-9+.-]*:\/\/[^\s'"`<>]+/g
+const EMBEDDED_URL = /[A-Za-z][A-Za-z0-9+.-]{0,63}:\/\/[^\s'"`<>]+/g
 
 /**
  * Registers every spelling of any `user:password@` found in `text` -- as a
