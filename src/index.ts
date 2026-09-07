@@ -15,7 +15,11 @@ export {
   maskSecretLines,
   readSecretEndpointDataParameter,
 } from './endpoint/endpoint-data-secret.js'
-export { generateIdToken, TokenGenerator } from './id-token/id-token-generator.js'
+export {
+  generateIdToken,
+  TokenGenerator,
+  isAllowedOidcRequestHost,
+} from './id-token/id-token-generator.js'
 export {
   exchangeOidcForUpst,
   OciTokenExchangeError,
