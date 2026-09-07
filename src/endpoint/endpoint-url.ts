@@ -1,7 +1,7 @@
 // The `.js` extensions are load-bearing: azure-pipelines-task-lib is CommonJS with
 // no `exports` map, so under ESM resolution an extensionless subpath does not
 // resolve at all (ERR_MODULE_NOT_FOUND). CJS is unaffected either way.
-import { debug } from 'azure-pipelines-task-lib/task.js'
+import { debug, loc } from 'azure-pipelines-task-lib/task.js'
 
 import { maskUrlCredentialsIn, redactUrlCredentialsIn } from '../input/url-input.js'
 
@@ -31,8 +31,8 @@ export function readEndpointUrl(id: string, optional?: false): string
 export function readEndpointUrl(id: string, optional = false): string | undefined {
   const url = process.env['ENDPOINT_URL_' + id]
   if (!optional && !url) {
-    // task-lib's own LIB_EndpointNotExist text.
-    throw new Error(`Endpoint not present: ${id}`)
+    // task-lib's own (localized) LIB_EndpointNotExist.
+    throw new Error(loc('LIB_EndpointNotExist', id))
   }
   if (url) {
     maskUrlCredentialsIn(url)

@@ -1,7 +1,7 @@
 // The `.js` extensions are load-bearing: azure-pipelines-task-lib is CommonJS with
 // no `exports` map, so under ESM resolution an extensionless subpath does not
 // resolve at all (ERR_MODULE_NOT_FOUND). CJS is unaffected either way.
-import { debug } from 'azure-pipelines-task-lib/task.js'
+import { debug, loc } from 'azure-pipelines-task-lib/task.js'
 import * as im from 'azure-pipelines-task-lib/internal.js'
 import { extractUrlUserInfoSecrets, redactUrlUserInfo } from '@4cloudguru/pipeline-task-core'
 
@@ -78,9 +78,9 @@ export function readUrlInput(name: string, required?: boolean): string | undefin
 export function readUrlInput(name: string, required = false): string | undefined {
   const raw = im._vault.retrieveSecret('INPUT_' + im._getVariableKey(name)) as string | undefined
   if (required && !raw) {
-    // task-lib's own LIB_InputRequired text, so a missing URL input reads the
-    // same as any other missing input.
-    throw new Error(`Input required: ${name}`)
+    // task-lib's own (localized) LIB_InputRequired, so a missing URL input
+    // reads the same as any other missing input on every agent culture.
+    throw new Error(loc('LIB_InputRequired', name))
   }
   if (raw) {
     maskUrlCredentialsIn(raw)
