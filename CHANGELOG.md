@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.9.1](https://github.com/4cloudguru/pipeline-task-ado/compare/v0.9.0...v0.9.1) (2026-09-07)
+
+
+### Bug Fixes
+
+* **deps:** require @4cloudguru/pipeline-task-core ^0.9.0 ([#68](https://github.com/4cloudguru/pipeline-task-ado/issues/68)) ([b5908e8](https://github.com/4cloudguru/pipeline-task-ado/commit/b5908e8e446193982f15c7067dd424e8359887cd))
+
 ## [0.9.0](https://github.com/4cloudguru/pipeline-task-ado/compare/v0.8.1...v0.9.0) (2026-09-07)
 
 
