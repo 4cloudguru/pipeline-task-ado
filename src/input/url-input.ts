@@ -32,8 +32,12 @@ const EMBEDDED_URL = /[A-Za-z][A-Za-z0-9+.-]{0,63}:\/\/[^\s'"`<>]+/g
  * prepended when it has no scheme -- and every spelling it finds is registered
  * too. Multi-line values are excluded: the parser's userinfo does not stop at a
  * line break, and would register the tail of the next line as the password.
+ * The user part excludes `:` so it cannot also match the optional password
+ * group: with both able to consume a colon, a long value with no `@` in it
+ * backtracks polynomially (CodeQL js/polynomial-redos). A colon is the
+ * separator here, never part of the user.
  */
-const SCHEME_LESS_USERINFO = /^[^\s/?#@]+(?::[^\s/?#@]*)?@[^\s/?#@]/
+const SCHEME_LESS_USERINFO = /^[^\s/?#@:]+(?::[^\s/?#@]*)?@[^\s/?#@]/
 
 function isSingleLine(text: string): boolean {
   return !/[\r\n]/.test(text)
