@@ -1,5 +1,10 @@
 export { getBoolInputDefaultTrue } from './input/bool-input.js'
-export { readUrlInput, maskUrlCredentialsIn, redactUrlCredentialsIn } from './input/url-input.js'
+export {
+  readUrlInput,
+  maskUrlCredentialsIn,
+  maskSecretAssignmentsIn,
+  redactUrlCredentialsIn,
+} from './input/url-input.js'
 export { readSecretInput } from './input/secret-input.js'
 export { readEndpointUrl } from './endpoint/endpoint-url.js'
 export {

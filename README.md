@@ -10,7 +10,7 @@ imports neither `azure-pipelines-task-lib` nor `undici`, which is what lets it
 be audited and reused without dragging in an ADO runtime. That property is worth
 keeping.
 
-But a real task needs code that *is* ADO-specific — reading inputs, registering
+But a real task needs code that _is_ ADO-specific — reading inputs, registering
 secrets with the agent, routing HTTP through the agent's proxy, emitting
 localized messages. That code was being copy-pasted between tasks and between
 the two extension repos, byte-identical and enforced by each repo's
@@ -18,10 +18,11 @@ the two extension repos, byte-identical and enforced by each repo's
 
 The split is the point:
 
-| | `pipeline-task-core` | `pipeline-task-ado` (this) |
-| --- | --- | --- |
-| Depends on the ADO task lib | never | yes (as a peer) |
-| Example | `assertEgressHostAllowed`, `redactUrl`, `VerificationFailure` | `getBoolInputDefaultTrue`, the proxy-aware HTTP client |
+|                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          | `pipeline-task-core`                                          | `pipeline-task-ado` (this)                             |
+| ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------- | ------------------------------------------------------ |
+| Depends on the ADO task lib                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              | never                                                         | yes (as a peer)                                        |
+| Example                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  | `assertEgressHostAllowed`, `redactUrl`, `VerificationFailure` | `getBoolInputDefaultTrue`, the proxy-aware HTTP client |
+| `readUrlInput` / `readSecretInput` / `readEndpointUrl` -- reads a task input or a service-connection URL WITHOUT task-lib's `getInput()`/`getEndpointUrl()` debug line, which prints the raw value at read time before any caller can mask it. `readUrlInput` registers every spelling of any URL userinfo in the value (whole, embedded, scheme-less) and the value of every credential-named `key=value` assignment in a free-form block; `readSecretInput` registers the whole value line-wise and logs `name=***`; `readEndpointUrl` does the URL treatment for `ENDPOINT_URL_<id>`. |
 
 Keeping them as two specifiers is also what preserves the extensions' test
 seams: a task can mock this package's HTTP surface while the security guards it
@@ -32,7 +33,7 @@ verify — green, and checking nothing.
 ## Peer dependencies, not dependencies
 
 `azure-pipelines-task-lib` is a **peer**. A task already vendors its own copy,
-and the agent configures *that* instance. Bundling a second one would ship in
+and the agent configures _that_ instance. Bundling a second one would ship in
 every `.vsix` and could answer differently about inputs and secrets. `undici` is
 an optional peer, needed only by the proxy-aware HTTP surface.
 
