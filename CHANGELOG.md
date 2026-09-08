@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.11.0](https://github.com/4cloudguru/pipeline-task-ado/compare/v0.10.0...v0.11.0) (2026-09-08)
+
+
+### Features
+
+* **input:** register every spelling a free-form value can carry ([#73](https://github.com/4cloudguru/pipeline-task-ado/issues/73)) ([092476e](https://github.com/4cloudguru/pipeline-task-ado/commit/092476ed45d77a0edd1d7bdbe90078c3c2e3addb))
+
 ## [0.10.0](https://github.com/4cloudguru/pipeline-task-ado/compare/v0.9.1...v0.10.0) (2026-09-07)
 
 
