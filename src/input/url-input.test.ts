@@ -145,3 +145,124 @@ describe('readUrlInput', () => {
     }
   })
 })
+
+// The spellings the first cut of the reader did not see (found by the M1
+// correctness and class-coverage reviews): a whole-value URL whose password
+// holds a character the embedded-URL scan stops at, a value with the scheme
+// left off, a password that decodes to more than one line, and a credential
+// typed into a free-form block as `key=value` rather than inside a URL.
+describe('readUrlInput: every spelling a free-form value can carry', () => {
+  beforeEach(() => {
+    EnvironmentVariableHelper.clearTrackedVariables()
+  })
+  afterEach(() => {
+    vault(ENV, undefined)
+    im._vault.storeSecret(ENV, '')
+    EnvironmentVariableHelper.clearTrackedVariables()
+  })
+
+  it("registers a whole-value password containing a quote or a space, which the embedded scan cuts off before the '@'", () => {
+    const out = captureStdout()
+    try {
+      vault(ENV, "https://svc:ab'cd s3cr3t@git.example.com/org/policies")
+      readUrlInput(NAME)
+    } finally {
+      out.restore()
+    }
+    const tracked = EnvironmentVariableHelper.getTrackedSecretValues()
+    expect(tracked.some((v) => v.includes("ab'cd s3cr3t") || v.includes("ab'cd%20s3cr3t"))).toBe(
+      true,
+    )
+    expect(out.lines().some((l) => l.includes("ab'cd"))).toBe(false)
+    const line = out.lines().find((l) => l.includes(`${NAME}=`)) ?? ''
+    expect(line).not.toContain('s3cr3t')
+    expect(line).toContain('git.example.com/org/policies')
+  })
+
+  it('registers and redacts a scheme-less user:password@host value without inventing a scheme in the diagnostic', () => {
+    const out = captureStdout()
+    try {
+      vault(ENV, `svc:${PASSWORD}@vcenter.example.com/sdk`)
+      readUrlInput(NAME)
+    } finally {
+      out.restore()
+    }
+    expect(EnvironmentVariableHelper.getTrackedSecretValues()).toContain(PASSWORD)
+    const line = out.lines().find((l) => l.includes(`${NAME}=`))
+    expect(line).toBeDefined()
+    expect(line).not.toContain(PASSWORD)
+    expect(line).toContain('vcenter.example.com/sdk')
+    expect(line).not.toContain('https://')
+  })
+
+  it('does not treat a multi-line value as one URL, and leaves a multi-line value with no credential in it unchanged', () => {
+    const out = captureStdout()
+    try {
+      vault(ENV, 'A=https://host.example.com\nB=x@y')
+      readUrlInput(NAME)
+    } finally {
+      out.restore()
+    }
+    expect(EnvironmentVariableHelper.getTrackedSecretValues()).toEqual([])
+    // task-lib escapes the line break as %0A on the way to the log; the value
+    // itself must be what getInput would have written.
+    expect(out.lines().find((l) => l.includes(`${NAME}=`))).toContain(
+      'A=https://host.example.com%0AB=x@y',
+    )
+  })
+
+  it('does not throw on a password whose percent-decoding contains a line break (registers it line-wise)', () => {
+    const out = captureStdout()
+    try {
+      vault(ENV, 'https://svc:top%0As3cr3t@git.example.com/x')
+      expect(() => readUrlInput(NAME)).not.toThrow()
+    } finally {
+      out.restore()
+    }
+    expect(EnvironmentVariableHelper.getTrackedSecretValues()).toContain('top%0As3cr3t')
+    expect(out.lines().some((l) => l.includes('top%0As3cr3t') || l.includes('s3cr3t'))).toBe(false)
+  })
+
+  it('registers the value of a credential-named key=value assignment in a variables or environment block and writes it as ***', () => {
+    const out = captureStdout()
+    try {
+      vault(
+        ENV,
+        'PKR_VAR_admin_password=hunter2-s3cr3t\nHTTPS_PROXY=https://proxy.example.com:3128\nTF_VAR_region=us-east-1',
+      )
+      readUrlInput(NAME)
+    } finally {
+      out.restore()
+    }
+    expect(EnvironmentVariableHelper.getTrackedSecretValues()).toContain('hunter2-s3cr3t')
+    expect(EnvironmentVariableHelper.getTrackedSecretValues()).not.toContain('us-east-1')
+    const line = out.lines().find((l) => l.includes(`${NAME}=`)) ?? ''
+    expect(line).not.toContain('hunter2-s3cr3t')
+    expect(line).toContain('PKR_VAR_admin_password=***')
+    expect(line).toContain('HTTPS_PROXY=https://proxy.example.com:3128')
+    expect(line).toContain('TF_VAR_region=us-east-1')
+  })
+
+  it('handles the argument-string and backend-config shapes, quoted or not, and leaves file/path-named keys alone', () => {
+    const out = captureStdout()
+    try {
+      vault(
+        ENV,
+        `-var client_secret=top-s3cr3t -var 'access_token="tok-s3cr3t"' -var-file=x.pkrvars.hcl token_file=/agent/tok password = "pw-s3cr3t"`,
+      )
+      readUrlInput(NAME)
+    } finally {
+      out.restore()
+    }
+    const tracked = EnvironmentVariableHelper.getTrackedSecretValues()
+    expect(tracked).toContain('top-s3cr3t')
+    expect(tracked).toContain('pw-s3cr3t')
+    expect(tracked.some((v) => v.includes('tok-s3cr3t'))).toBe(true)
+    expect(tracked).not.toContain('/agent/tok')
+    expect(tracked).not.toContain('x.pkrvars.hcl')
+    const line = out.lines().find((l) => l.includes(`${NAME}=`)) ?? ''
+    expect(line).not.toContain('s3cr3t')
+    expect(line).toContain('-var-file=x.pkrvars.hcl')
+    expect(line).toContain('token_file=/agent/tok')
+  })
+})

@@ -86,3 +86,23 @@ describe('readEndpointUrl', () => {
     expect(process.env[ENV]).toBe(WITH_CREDS)
   })
 })
+
+describe('readEndpointUrl: a connection URL written without its scheme', () => {
+  afterEach(() => {
+    delete process.env[ENV]
+    EnvironmentVariableHelper.clearTrackedVariables()
+  })
+
+  it('registers the userinfo of svc:password@host and redacts the debug line, exactly as for https://', () => {
+    process.env[ENV] = `svc:${PASSWORD}@vcenter.example.com/sdk`
+    const out = captureVisible()
+    try {
+      expect(readEndpointUrl(ID)).toBe(`svc:${PASSWORD}@vcenter.example.com/sdk`)
+    } finally {
+      out.restore()
+    }
+    expect(EnvironmentVariableHelper.getTrackedSecretValues()).toContain(PASSWORD)
+    expect(out.lines().some((l) => l.includes(PASSWORD))).toBe(false)
+    expect(out.lines().find((l) => l.includes(`${ID}=`))).toContain('vcenter.example.com/sdk')
+  })
+})
