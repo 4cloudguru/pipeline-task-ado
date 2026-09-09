@@ -58,7 +58,7 @@
     }
   },
   "dependencies": {
-    "@4cloudguru/pipeline-task-core": "^0.9.0"
+    "@4cloudguru/pipeline-task-core": "^0.9.3"
   },
   "devDependencies": {
     "@commitlint/cli": "^21.2.1",
