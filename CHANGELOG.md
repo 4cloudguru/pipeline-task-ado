@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.11.1](https://github.com/4cloudguru/pipeline-task-ado/compare/v0.11.0...v0.11.1) (2026-09-09)
+
+
+### Bug Fixes
+
+* **ci:** scope publish-time blocking audit to production dependencies ([#78](https://github.com/4cloudguru/pipeline-task-ado/issues/78)) ([9c09121](https://github.com/4cloudguru/pipeline-task-ado/commit/9c0912166ced53f46afede01700d5fa38f7cbf26))
+
+
+### Dependencies
+
+* bump @4cloudguru/pipeline-task-core to ^0.9.3 ([#75](https://github.com/4cloudguru/pipeline-task-ado/issues/75)) ([cf0d9b8](https://github.com/4cloudguru/pipeline-task-ado/commit/cf0d9b85c39f714ff89917b90e88c601d8babea2))
+
 ## [0.11.0](https://github.com/4cloudguru/pipeline-task-ado/compare/v0.10.0...v0.11.0) (2026-09-08)
 
 
